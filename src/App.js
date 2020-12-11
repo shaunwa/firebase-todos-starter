@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import firebase from 'firebase/app';
 import { SignInPage, TodosPage } from './pages';
 import './App.css';
 
@@ -12,12 +13,18 @@ const App = () => {
     // These are set opposite what you might expect 
     // so that you can actually see the app. Once we
     // implement authentication, we'll flip them
-    const [isLoading, setIsLoading] = useState(false);
-    const [isAuthed, setIsAuthed] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isAuthed, setIsAuthed] = useState(false);
 
     useEffect(() => {
-        // Check to see if the user is authed here
-        // and update the state vars accordingly
+        firebase.auth().onAuthStateChanged(user => {
+            if (user) {
+                setIsAuthed(true);
+            } else {
+                setIsAuthed(false);
+            }
+            setIsLoading(false);
+        });
     }, []);
 
     return isLoading

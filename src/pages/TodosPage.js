@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import firebase from 'firebase/app';
 import { NewTodoForm, TodoList } from '../todos';
 import { SignOutButton } from '../components';
 
@@ -12,53 +13,51 @@ const TodosHeading = styled.h1`
     text-align: center;
 `;
 
-// These are fake todos that we'll get rid of
-// once we add Firebase's Firestore
-const fakeTodos = [{
-    id: 'ae06181d-92c2-4fed-a29d-fb53a6301eb9',
-    text: 'Learn about React Ecosystems',
-    isCompleted: false,
-    createdAt: new Date(),
-}, {
-    id: 'cda9165d-c263-4ef6-af12-3f1271af5fb4',
-    text: 'Get together with friends',
-    isCompleted: false,
-    createdAt: new Date(Date.now() - 86400000 * 7),
-}, {
-    id: '2e538cc5-b734-4771-a109-dfcd204bb38b',
-    text: 'Buy groceries',
-    isCompleted: true,
-    createdAt: new Date(Date.now() - 86400000 * 14),
-}];
-
 export const TodosPage = () => {
     // The starting values here will need to change
     // once we add Firestore
-    const [isLoading, setIsLoading] = useState(false);
-    const [todos, setTodos] = useState(fakeTodos);
+    const [isLoading, setIsLoading] = useState(true);
+    const [todos, setTodos] = useState([]);
 
     useEffect(() => {
-        const loadTodos = async () => {
-            // Logic for loading todos from
-            // Firestore goes here
-        }
-
-        loadTodos();
+        const currentUserId = firebase.auth().currentUser.uid;
+        firebase.firestore()
+            .collection('todos')
+            .where('userId', '==', currentUserId)
+            .onSnapshot(querySnapshot => {
+                const documentSnapshots = querySnapshot.docs;
+                const todos = documentSnapshots.map(doc => ({
+                    ...doc.data(),
+                    createdAt: doc.data().createdAt.toDate(),
+                    id: doc.id,
+                }));
+                setTodos(todos);
+                setIsLoading(false);
+            });
     }, []);
 
     const onAddTodo = async (inputValue) => {
-        // Logic for creating new todos goes here
-        alert('You need to implement this!');
+        const currentUser = firebase.auth().currentUser;
+        const newTodo = {
+            userId: currentUser.uid,
+            text: inputValue,
+            isCompleted: false,
+            createdAt: firebase.firestore.Timestamp.fromDate(new Date()),
+        };
+
+        await firebase.firestore().collection('todos').add(newTodo);
     };
 
-    const onRemoveTodo = async (id) => {
-        // Logic for creating new todos goes here
-        alert('You need to implement this!');
+    const onRemoveTodo = async id => {
+        await firebase.firestore().collection('todos')
+            .doc(id)
+            .delete();
     }
 
-    const onMarkTodoAsCompleted = async (id) => {
-        // Logic for creating new todos goes here
-        alert('You need to implement this!');
+    const onMarkTodoAsCompleted = async id => {
+        await firebase.firestore().collection('todos')
+            .doc(id)
+            .update({ isCompleted: true });
     }
 
     return (

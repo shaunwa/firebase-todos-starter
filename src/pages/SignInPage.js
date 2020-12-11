@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
+import firebase from 'firebase/app';
 import {
     Button,
     CenteredContentBox,
@@ -8,6 +9,18 @@ import {
 const Form = styled.div`
     width: 350px;
     margin: 32px;
+
+    input {
+        display: block;
+        font-size: 16px;
+        padding: 8px;
+        border: none;
+        border-bottom: 2px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        width: 100%;
+        outline: none;
+    }
 `;
 
 const FullWidthButton = styled(Button)`
@@ -22,20 +35,33 @@ const Heading = styled.h1`
 const withTopMargin = px => ({ marginTop: `${px}px` });
 
 export const SignInPage = () => {
-    const onSignInWithGoogleClicked = async () => {
-        // Firebase logic for signing in a user goes here
-        alert('You need to implement this!');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+
+    const onSignInClicked = async () => {
+        firebase.auth().signInWithEmailAndPassword(email, password);
     }
 
     return (
         <CenteredContentBox>
             <Form>
                 <Heading>My Todos App</Heading>
-                <FullWidthButton
-                    style={withTopMargin(8)}
-                    onClick={onSignInWithGoogleClicked}
-                >Sign In With Google</FullWidthButton>
+                <label>
+                    Email Address:
+                    <input
+                        type="text"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)} />
+                </label>
+                <label>
+                    Password:
+                    <input
+                        type="password"
+                        value={password}
+                        onChange={e => setPassword(e.target.value)} />
+                </label>
             </Form>
+            <FullWidthButton onClick={onSignInClicked}>Sign in</FullWidthButton>
         </CenteredContentBox>
     );
 }
